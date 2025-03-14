@@ -8,11 +8,49 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({ email: "", password: "" });
   const navigate = useNavigate();
   const { login } = useAuth();
 
+  // Validation functions
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email) return "Email is required";
+    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    return "";
+  };
+
+  const validatePassword = (password) => {
+    if (!password) return "Password is required";
+    if (password.length < 8) return "Password must be at least 8 characters long";
+    return "";
+  };
+
+  // Handle input changes with real-time validation
+  const handleEmailChange = (e) => {
+    const value = e.target.value;
+    setEmail(value);
+    setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+  };
+
+  const handlePasswordChange = (e) => {
+    const value = e.target.value;
+    setPassword(value);
+    setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Validate before submission
+    const emailError = validateEmail(email);
+    const passwordError = validatePassword(password);
+    
+    if (emailError || passwordError) {
+      setErrors({ email: emailError, password: passwordError });
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -29,10 +67,10 @@ const LoginPage = () => {
         navigate("/home");
       } else {
         const errorData = await response.json();
-        alert(errorData.message || "Invalid credentials");
+        setErrors((prev) => ({ ...prev, email: errorData.message || "Invalid credentials" }));
       }
     } catch (err) {
-      alert("An error occurred. Please try again.");
+      setErrors((prev) => ({ ...prev, email: "An error occurred. Please try again." }));
     } finally {
       setLoading(false);
     }
@@ -57,10 +95,9 @@ const LoginPage = () => {
           padding: "2rem",
           borderRadius: "12px",
           boxShadow: "0 8px 30px rgba(0,0,0,0.2)",
-          backgroundColor: "rgba(255, 255, 255, 0.85)", // Semi-transparent white
+          backgroundColor: "rgba(255, 255, 255, 0.85)",
         }}
       >
-        {/* Sign In Title */}
         <motion.h2
           className="title is-5 has-text-centered has-text-weight-bold"
           initial={{ opacity: 0, y: -10 }}
@@ -70,8 +107,7 @@ const LoginPage = () => {
           Sign In
         </motion.h2>
 
-        {/* Login Form */}
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleSubmit} noValidate>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
             {/* Email Field */}
             <div className="field">
@@ -79,14 +115,18 @@ const LoginPage = () => {
               <div className="control">
                 <input
                   type="email"
-                  className="input is-medium"
+                  className={`input is-medium ${errors.email ? "is-danger" : ""}`}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
+                  onChange={handleEmailChange}
                   placeholder="Enter your email"
                   style={{ borderRadius: "8px" }}
+                  aria-invalid={!!errors.email}
+                  aria-describedby="email-error"
                 />
               </div>
+              {errors.email && (
+                <p className="help is-danger" id="email-error">{errors.email}</p>
+              )}
             </div>
 
             {/* Password Field */}
@@ -95,14 +135,18 @@ const LoginPage = () => {
               <div className="control">
                 <input
                   type="password"
-                  className="input is-medium"
+                  className={`input is-medium ${errors.password ? "is-danger" : ""}`}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
+                  onChange={handlePasswordChange}
                   placeholder="Enter your password"
                   style={{ borderRadius: "8px" }}
+                  aria-invalid={!!errors.password}
+                  aria-describedby="password-error"
                 />
               </div>
+              {errors.password && (
+                <p className="help is-danger" id="password-error">{errors.password}</p>
+              )}
             </div>
 
             {/* Sign In Button */}
@@ -119,7 +163,7 @@ const LoginPage = () => {
                   }}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
-                  disabled={loading}
+                  disabled={loading || !!errors.email || !!errors.password}
                 >
                   Sign In
                 </motion.button>
@@ -128,7 +172,6 @@ const LoginPage = () => {
           </motion.div>
         </form>
 
-        {/* Forgot Password & Sign Up Links */}
         <motion.div
           className="has-text-centered"
           style={{ marginTop: "1rem" }}
