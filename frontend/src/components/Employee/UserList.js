@@ -130,7 +130,6 @@ const UserList = () => {
       let aValue = a[sortConfig.key];
       let bValue = b[sortConfig.key];
 
-      // Handle specific cases
       if (sortConfig.key === "full_name") {
         aValue = a.full_name || "";
         bValue = b.full_name || "";
@@ -395,7 +394,8 @@ const UserList = () => {
         error.response?.data || error.message
       );
       alert(
-        "Failed to add employee: " + (error.response?.data?.message || error.message)
+        "Failed to add employee: " +
+          (error.response?.data?.message || error.message)
       );
     }
   };
@@ -484,48 +484,9 @@ const UserList = () => {
       />
 
       <div
-        className="column container mt-5"
+        className="column mt-5 p-5"
         style={{ position: "relative", zIndex: 1 }}
       >
-        <div className="is-flex is-justify-content-space-between mb-4 is-flex-wrap-wrap">
-          <input
-            type="text"
-            className="input mt-2"
-            style={{ maxWidth: isMobile ? "50%" : "300px", width: "100%" }}
-            placeholder="Search by Full Name, Job Title or Position..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-          <div className="mt-2 is-flex is-flex-wrap-wrap">
-            {!isMobile && !isAdding && (
-              <button
-                className="button is-success ml-3 mb-2"
-                onClick={startAdding}
-              >
-                Add Employee
-              </button>
-            )}
-            {isMobile ? (
-              <Link
-                to="/home/AddEmployee"
-                className="button is-success ml-3 mb-2"
-              >
-                Add Employee
-              </Link>
-            ) : null}
-            <button
-              onClick={handleViewPDF}
-              className="button is-info ml-3 mb-2"
-            >
-              View PDF
-            </button>
-          </div>
-        </div>
-
-        {/* Modern Table Design with Sortable Headers and Icons */}
         {!isMobile ? (
           <div
             className="table-container box"
@@ -541,7 +502,7 @@ const UserList = () => {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("id")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "10%" }}
                   >
                     Employee ID
                     <span className="ml-1">
@@ -559,7 +520,7 @@ const UserList = () => {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("full_name")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "15%" }}
                   >
                     Full Name
                     <span className="ml-1">
@@ -577,7 +538,7 @@ const UserList = () => {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("gender")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "10%" }}
                   >
                     Gender
                     <span className="ml-1">
@@ -595,7 +556,7 @@ const UserList = () => {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("email")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "20%" }}
                   >
                     Email
                     <span className="ml-1">
@@ -613,7 +574,7 @@ const UserList = () => {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("Job_Title")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "15%" }}
                   >
                     Job Title
                     <span className="ml-1">
@@ -631,7 +592,7 @@ const UserList = () => {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("position")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "15%" }}
                   >
                     Position
                     <span className="ml-1">
@@ -649,7 +610,7 @@ const UserList = () => {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("salary")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "10%" }}
                   >
                     Salary
                     <span className="ml-1">
@@ -664,7 +625,93 @@ const UserList = () => {
                       )}
                     </span>
                   </th>
-                  <th className="has-text-weight-semibold">Actions</th>
+                  <th
+                    className="has-text-weight-semibold"
+                    style={{ width: "15%" }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <input
+                        type="text"
+                        className="input"
+                        style={{
+                          width: "200px",
+                          borderRadius: "20px",
+                          padding: "5px 15px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                          border: "1px solid #dbdbdb",
+                          transition: "all 0.3s ease",
+                          fontSize: "14px",
+                        }}
+                        placeholder="Search by Name/Job/Position..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        onFocus={(e) =>
+                          (e.target.style.boxShadow =
+                            "0 4px 8px rgba(0,0,0,0.2)")
+                        }
+                        onBlur={(e) =>
+                          (e.target.style.boxShadow =
+                            "0 2px 4px rgba(0,0,0,0.1)")
+                        }
+                      />
+                      {!isAdding && (
+                        <button
+                          className="button"
+                          style={{
+                            backgroundColor: "#28a745",
+                            color: "white",
+                            borderRadius: "15px",
+                            padding: "5px 15px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            transition: "all 0.3s ease",
+                            border: "none",
+                            fontSize: "14px",
+                          }}
+                          onClick={startAdding}
+                          onMouseOver={(e) =>
+                            (e.target.style.backgroundColor = "#218838")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.backgroundColor = "#28a745")
+                          }
+                        >
+                          Add Employee
+                        </button>
+                      )}
+                      <button
+                        className="button"
+                        style={{
+                          backgroundColor: "#17a2b8",
+                          color: "white",
+                          borderRadius: "15px",
+                          padding: "5px 15px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                          transition: "all 0.3s ease",
+                          border: "none",
+                          fontSize: "14px",
+                        }}
+                        onClick={handleViewPDF}
+                        onMouseOver={(e) =>
+                          (e.target.style.backgroundColor = "#138496")
+                        }
+                        onMouseOut={(e) =>
+                          (e.target.style.backgroundColor = "#17a2b8")
+                        }
+                      >
+                        View PDF
+                      </button>
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -799,22 +846,46 @@ const UserList = () => {
                       />
                     </td>
                     <td>
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "0.5rem",
-                        }}
-                      >
+                      <div style={{ display: "flex", gap: "10px" }}>
                         <button
-                          className="button is-small is-success"
+                          className="button is-small"
+                          style={{
+                            backgroundColor: "#28a745",
+                            color: "white",
+                            borderRadius: "15px",
+                            padding: "5px 15px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            transition: "all 0.3s ease",
+                            border: "none",
+                          }}
                           onClick={saveNewEmployee}
+                          onMouseOver={(e) =>
+                            (e.target.style.backgroundColor = "#218838")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.backgroundColor = "#28a745")
+                          }
                         >
                           Save
                         </button>
                         <button
-                          className="button is-small is-danger is-outlined"
+                          className="button is-small"
+                          style={{
+                            backgroundColor: "#dc3545",
+                            color: "white",
+                            borderRadius: "15px",
+                            padding: "5px 15px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            transition: "all 0.3s ease",
+                            border: "none",
+                          }}
                           onClick={cancelAdding}
+                          onMouseOver={(e) =>
+                            (e.target.style.backgroundColor = "#c82333")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.backgroundColor = "#dc3545")
+                          }
                         >
                           Cancel
                         </button>
@@ -955,7 +1026,9 @@ const UserList = () => {
                                     </option>
                                   ))
                                 ) : (
-                                  <option disabled>No positions available</option>
+                                  <option disabled>
+                                    No positions available
+                                  </option>
                                 )}
                               </select>
                             </div>
@@ -987,43 +1060,91 @@ const UserList = () => {
                       </td>
                       <td>
                         {editRow === user.id ? (
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                            }}
-                          >
+                          <div style={{ display: "flex", gap: "10px" }}>
                             <button
-                              className="button is-small is-success"
+                              className="button is-small"
+                              style={{
+                                backgroundColor: "#28a745",
+                                color: "white",
+                                borderRadius: "15px",
+                                padding: "5px 15px",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                transition: "all 0.3s ease",
+                                border: "none",
+                              }}
                               onClick={() => handleSave(user.id)}
+                              onMouseOver={(e) =>
+                                (e.target.style.backgroundColor = "#218838")
+                              }
+                              onMouseOut={(e) =>
+                                (e.target.style.backgroundColor = "#28a745")
+                              }
                             >
                               Save
                             </button>
                             <button
-                              className="button is-small is-danger is-outlined"
+                              className="button is-small"
+                              style={{
+                                backgroundColor: "#dc3545",
+                                color: "white",
+                                borderRadius: "15px",
+                                padding: "5px 15px",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                transition: "all 0.3s ease",
+                                border: "none",
+                              }}
                               onClick={() => setEditRow(null)}
+                              onMouseOver={(e) =>
+                                (e.target.style.backgroundColor = "#c82333")
+                              }
+                              onMouseOut={(e) =>
+                                (e.target.style.backgroundColor = "#dc3545")
+                              }
                             >
                               Cancel
                             </button>
                           </div>
                         ) : (
-                          <div
-                            style={{
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "0.5rem",
-                            }}
-                          >
+                          <div style={{ display: "flex", gap: "10px" }}>
                             <button
+                              className="button is-small"
+                              style={{
+                                backgroundColor: "#17a2b8",
+                                color: "white",
+                                borderRadius: "15px",
+                                padding: "5px 15px",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                transition: "all 0.3s ease",
+                                border: "none",
+                              }}
                               onClick={() => handleEdit(user)}
-                              className="button is-small is-info is-outlined"
+                              onMouseOver={(e) =>
+                                (e.target.style.backgroundColor = "#138496")
+                              }
+                              onMouseOut={(e) =>
+                                (e.target.style.backgroundColor = "#17a2b8")
+                              }
                             >
                               Edit
                             </button>
                             <button
+                              className="button is-small"
+                              style={{
+                                backgroundColor: "#dc3545",
+                                color: "white",
+                                borderRadius: "15px",
+                                padding: "5px 15px",
+                                boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                                transition: "all 0.3s ease",
+                                border: "none",
+                              }}
                               onClick={() => openDelete(user)}
-                              className="button is-small is-danger is-outlined"
+                              onMouseOver={(e) =>
+                                (e.target.style.backgroundColor = "#c82333")
+                              }
+                              onMouseOut={(e) =>
+                                (e.target.style.backgroundColor = "#dc3545")
+                              }
                             >
                               Delete
                             </button>
@@ -1043,60 +1164,178 @@ const UserList = () => {
             </table>
           </div>
         ) : (
-          <div className="columns is-multiline m-1">
-            {displayedUsers.map((user) => (
-              <div key={user.id} className="column is-12">
-                <div
-                  className="card"
+          <>
+            {/* Mobile Header Section */}
+            <div
+              className="is-flex is-justify-content-space-between mb-4 is-flex-wrap-wrap"
+              style={{ padding: "0 10px" }}
+            >
+              <input
+                type="text"
+                className="input mt-2"
+                style={{
+                  maxWidth: "50%",
+                  width: "100%",
+                  borderRadius: "20px",
+                  padding: "5px 15px",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  border: "1px solid #dbdbdb",
+                  transition: "all 0.3s ease",
+                  fontSize: "14px",
+                }}
+                placeholder="Search by Name/Job/Position..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                onFocus={(e) =>
+                  (e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)")
+                }
+                onBlur={(e) =>
+                  (e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)")
+                }
+              />
+              <div
+                className="mt-2 is-flex is-flex-wrap-wrap"
+                style={{ gap: "10px" }}
+              >
+                <Link
+                  to="/home/AddEmployee"
+                  className="button"
                   style={{
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    backgroundColor: "#28a745",
+                    color: "white",
+                    borderRadius: "15px",
+                    padding: "5px 15px",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    transition: "all 0.3s ease",
+                    border: "none",
+                    textDecoration: "none",
+                    fontSize: "14px",
                   }}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#218838")
+                  }
+                  onMouseOut={(e) =>
+                    (e.target.style.backgroundColor = "#28a745")
+                  }
                 >
-                  <header
-                    className="card-header"
-                    style={{ backgroundColor: "#f5f5f5" }}
-                  >
-                    <p className="card-header-title">
-                      {user.full_name} - {user.gender}
-                    </p>
-                  </header>
-                  <div className="card-content">
-                    <p>
-                      <strong>Employee ID:</strong> {user.id}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {user.email}
-                    </p>
-                    <p>
-                      <strong>Job Title:</strong> {user.Job_Title || "-"}
-                    </p>
-                    <p>
-                      <strong>Position:</strong> {user.position || "-"}
-                    </p>
-                    <p>
-                      <strong>Salary:</strong> ₱
-                      {user.salary?.toLocaleString("en-PH") || "-"}
-                    </p>
-                  </div>
-                  <footer className="card-footer">
-                    <Link
-                      to={`/home/edit/${user.id}`}
-                      className="card-footer-item button is-small is-info is-outlined"
-                    >
-                      Edit
-                    </Link>
-                    <button
-                      onClick={() => openDelete(user)}
-                      className="card-footer-item button is-small is-danger is-outlined"
-                    >
-                      Delete
-                    </button>
-                  </footer>
-                </div>
+                  Add Employee
+                </Link>
+                <button
+                  className="button"
+                  style={{
+                    backgroundColor: "#17a2b8",
+                    color: "white",
+                    borderRadius: "15px",
+                    padding: "5px 15px",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    transition: "all 0.3s ease",
+                    border: "none",
+                    fontSize: "14px",
+                  }}
+                  onClick={handleViewPDF}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#138496")
+                  }
+                  onMouseOut={(e) =>
+                    (e.target.style.backgroundColor = "#17a2b8")
+                  }
+                >
+                  View PDF
+                </button>
               </div>
-            ))}
-          </div>
+            </div>
+
+            {/* Mobile Card Layout */}
+            <div className="columns is-multiline" style={{ padding: "0 10px" }}>
+              {displayedUsers.map((user) => (
+                <div key={user.id} className="column is-12">
+                  <div
+                    className="card"
+                    style={{
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <header
+                      className="card-header"
+                      style={{ backgroundColor: "#f5f5f5" }}
+                    >
+                      <p className="card-header-title">
+                        {user.full_name} - {user.gender}
+                      </p>
+                    </header>
+                    <div className="card-content">
+                      <p>
+                        <strong>Employee ID:</strong> {user.id}
+                      </p>
+                      <p>
+                        <strong>Email:</strong> {user.email}
+                      </p>
+                      <p>
+                        <strong>Job Title:</strong> {user.Job_Title || "-"}
+                      </p>
+                      <p>
+                        <strong>Position:</strong> {user.position || "-"}
+                      </p>
+                      <p>
+                        <strong>Salary:</strong> ₱
+                        {user.salary?.toLocaleString("en-PH") || "-"}
+                      </p>
+                    </div>
+                    <footer className="card-footer">
+                      <Link
+                        to={`/home/edit/${user.id}`}
+                        className="card-footer-item button is-small"
+                        style={{
+                          backgroundColor: "#17a2b8",
+                          color: "white",
+                          borderRadius: "15px",
+                          padding: "5px 15px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                          transition: "all 0.3s ease",
+                          border: "none",
+                          textDecoration: "none",
+                          textAlign: "center",
+                        }}
+                        onMouseOver={(e) =>
+                          (e.target.style.backgroundColor = "#138496")
+                        }
+                        onMouseOut={(e) =>
+                          (e.target.style.backgroundColor = "#17a2b8")
+                        }
+                      >
+                        Edit
+                      </Link>
+                      <button
+                        className="card-footer-item button is-small"
+                        style={{
+                          backgroundColor: "#dc3545",
+                          color: "white",
+                          borderRadius: "15px",
+                          padding: "5px 15px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                          transition: "all 0.3s ease",
+                          border: "none",
+                        }}
+                        onClick={() => openDelete(user)}
+                        onMouseOver={(e) =>
+                          (e.target.style.backgroundColor = "#c82333")
+                        }
+                        onMouseOut={(e) =>
+                          (e.target.style.backgroundColor = "#dc3545")
+                        }
+                      >
+                        Delete
+                      </button>
+                    </footer>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Pagination Controls */}
