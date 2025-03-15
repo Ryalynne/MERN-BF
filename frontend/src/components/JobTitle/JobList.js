@@ -222,37 +222,9 @@ function DepartList() {
       />
 
       <div
-        className="column container mt-5"
+        className="column p-5 mt-5"
         style={{ position: "relative", zIndex: 1 }}
       >
-        {/* Header Section */}
-        <div className="is-flex is-justify-content-space-between mb-4 is-flex-wrap-wrap">
-          <input
-            type="text"
-            className="input mt-2"
-            style={{ maxWidth: isMobile ? "50%" : "300px", width: "100%" }}
-            placeholder="Search Job Title..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-          />
-          <div className="mt-2">
-            {!isMobile && !isAdding && (
-              <button className="button is-success" onClick={startAdding}>
-                Add Job Title
-              </button>
-            )}
-            {isMobile && (
-              <Link to="/home/AddJob" className="button is-success">
-                Add Job Title
-              </Link>
-            )}
-          </div>
-        </div>
-
-        {/* Modern Table Design with Sortable Headers and Icons */}
         {!isMobile ? (
           <div
             className="table-container box"
@@ -268,7 +240,7 @@ function DepartList() {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("id")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "20%" }}
                   >
                     Job ID
                     <span className="ml-1">
@@ -286,7 +258,7 @@ function DepartList() {
                   <th
                     className="has-text-weight-semibold"
                     onClick={() => requestSort("Job_Title")}
-                    style={{ cursor: "pointer" }}
+                    style={{ cursor: "pointer", width: "40%" }}
                   >
                     Job Title
                     <span className="ml-1">
@@ -301,7 +273,69 @@ function DepartList() {
                       )}
                     </span>
                   </th>
-                  <th className="has-text-weight-semibold">Action</th>
+                  <th
+                    className="has-text-weight-semibold"
+                    style={{ width: "40%" }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        justifyContent: "flex-end",
+                      }}
+                    >
+                      <input
+                        type="text"
+                        className="input"
+                        style={{
+                          width: "200px",
+                          borderRadius: "20px",
+                          padding: "5px 15px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                          border: "1px solid #dbdbdb",
+                          transition: "all 0.3s ease",
+                          fontSize: "14px",
+                        }}
+                        placeholder="Search Job Title..."
+                        value={searchTerm}
+                        onChange={(e) => {
+                          setSearchTerm(e.target.value);
+                          setCurrentPage(1);
+                        }}
+                        onFocus={(e) =>
+                          (e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)")
+                        }
+                        onBlur={(e) =>
+                          (e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)")
+                        }
+                      />
+                      {!isAdding && (
+                        <button
+                          className="button"
+                          style={{
+                            backgroundColor: "#28a745",
+                            color: "white",
+                            borderRadius: "15px",
+                            padding: "5px 15px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            transition: "all 0.3s ease",
+                            border: "none",
+                            fontSize: "14px",
+                          }}
+                          onClick={startAdding}
+                          onMouseOver={(e) =>
+                            (e.target.style.backgroundColor = "#218838")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.backgroundColor = "#28a745")
+                          }
+                        >
+                          Add Job Title
+                        </button>
+                      )}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -318,16 +352,46 @@ function DepartList() {
                       />
                     </td>
                     <td>
-                      <div className="buttons">
+                      <div className="buttons" style={{ gap: "10px" }}>
                         <button
-                          className="button is-small is-success"
+                          className="button is-small"
+                          style={{
+                            backgroundColor: "#28a745",
+                            color: "white",
+                            borderRadius: "15px",
+                            padding: "5px 15px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            transition: "all 0.3s ease",
+                            border: "none",
+                          }}
                           onClick={saveNewJob}
+                          onMouseOver={(e) =>
+                            (e.target.style.backgroundColor = "#218838")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.backgroundColor = "#28a745")
+                          }
                         >
                           Save
                         </button>
                         <button
-                          className="button is-small is-danger is-outlined"
+                          className="button is-small"
+                          style={{
+                            backgroundColor: "#dc3545",
+                            color: "white",
+                            borderRadius: "15px",
+                            padding: "5px 15px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            transition: "all 0.3s ease",
+                            border: "none",
+                          }}
                           onClick={cancelAdding}
+                          onMouseOver={(e) =>
+                            (e.target.style.backgroundColor = "#c82333")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.backgroundColor = "#dc3545")
+                          }
                         >
                           Cancel
                         </button>
@@ -352,24 +416,69 @@ function DepartList() {
                     </td>
                     <td>
                       {editingJobId === job.id ? (
-                        <div className="buttons">
+                        <div className="buttons" style={{ gap: "10px" }}>
                           <button
-                            className="button is-small is-success"
+                            className="button is-small"
+                            style={{
+                              backgroundColor: "#28a745",
+                              color: "white",
+                              borderRadius: "15px",
+                              padding: "5px 15px",
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                              transition: "all 0.3s ease",
+                              border: "none",
+                            }}
                             onClick={() => saveJobTitle(job.id)}
+                            onMouseOver={(e) =>
+                              (e.target.style.backgroundColor = "#218838")
+                            }
+                            onMouseOut={(e) =>
+                              (e.target.style.backgroundColor = "#28a745")
+                            }
                           >
                             Save
                           </button>
                           <button
-                            className="button is-small is-danger is-outlined"
+                            className="button is-small"
+                            style={{
+                              backgroundColor: "#dc3545",
+                              color: "white",
+                              borderRadius: "15px",
+                              padding: "5px 15px",
+                              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                              transition: "all 0.3s ease",
+                              border: "none",
+                            }}
                             onClick={cancelEditing}
+                            onMouseOver={(e) =>
+                              (e.target.style.backgroundColor = "#c82333")
+                            }
+                            onMouseOut={(e) =>
+                              (e.target.style.backgroundColor = "#dc3545")
+                            }
                           >
                             Cancel
                           </button>
                         </div>
                       ) : (
                         <button
-                          className="button is-small is-info is-outlined"
+                          className="button is-small"
+                          style={{
+                            backgroundColor: "#17a2b8",
+                            color: "white",
+                            borderRadius: "15px",
+                            padding: "5px 15px",
+                            boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                            transition: "all 0.3s ease",
+                            border: "none",
+                          }}
                           onClick={() => startEditing(job)}
+                          onMouseOver={(e) =>
+                            (e.target.style.backgroundColor = "#138496")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.backgroundColor = "#17a2b8")
+                          }
                         >
                           Edit
                         </button>
@@ -381,41 +490,119 @@ function DepartList() {
             </table>
           </div>
         ) : (
-          <div className="columns is-multiline">
-            {displayedJobs.map((job) => (
-              <div key={job.id || Math.random()} className="column is-12">
-                <div
-                  className="card"
+          <>
+            {/* Mobile Header Section */}
+            <div
+              className="is-flex is-justify-content-space-between mb-4 is-flex-wrap-wrap"
+              style={{ padding: "0 10px" }}
+            >
+              <input
+                type="text"
+                className="input mt-2"
+                style={{
+                  maxWidth: "50%",
+                  width: "100%",
+                  borderRadius: "20px",
+                  padding: "5px 15px",
+                  boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                  border: "1px solid #dbdbdb",
+                  transition: "all 0.3s ease",
+                  fontSize: "14px",
+                }}
+                placeholder="Search Job Title..."
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  setCurrentPage(1);
+                }}
+                onFocus={(e) =>
+                  (e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)")
+                }
+                onBlur={(e) =>
+                  (e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)")
+                }
+              />
+              <div className="mt-2">
+                <Link
+                  to="/home/AddJob"
+                  className="button"
                   style={{
-                    borderRadius: "8px",
-                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    backgroundColor: "#28a745",
+                    color: "white",
+                    borderRadius: "15px",
+                    padding: "5px 15px",
+                    boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                    transition: "all 0.3s ease",
+                    border: "none",
+                    textDecoration: "none",
+                    fontSize: "14px",
                   }}
+                  onMouseOver={(e) =>
+                    (e.target.style.backgroundColor = "#218838")
+                  }
+                  onMouseOut={(e) =>
+                    (e.target.style.backgroundColor = "#28a745")
+                  }
                 >
-                  <header
-                    className="card-header"
-                    style={{ backgroundColor: "#f5f5f5" }}
-                  >
-                    <p className="card-header-title">
-                      {job.Job_Title || "Untitled"}
-                    </p>
-                  </header>
-                  <div className="card-content">
-                    <p className="subtitle is-6">
-                      <strong>Job ID:</strong> {job.id || "N/A"}
-                    </p>
-                  </div>
-                  <footer className="card-footer">
-                    <Link
-                      to={`/home/editJobTitle/${job.id}`}
-                      className="card-footer-item button is-small is-info is-outlined"
-                    >
-                      Edit
-                    </Link>
-                  </footer>
-                </div>
+                  Add Job Title
+                </Link>
               </div>
-            ))}
-          </div>
+            </div>
+
+            {/* Mobile Card Layout */}
+            <div className="columns is-multiline" style={{ padding: "0 10px" }}>
+              {displayedJobs.map((job) => (
+                <div key={job.id || Math.random()} className="column is-12">
+                  <div
+                    className="card"
+                    style={{
+                      borderRadius: "8px",
+                      boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                    }}
+                  >
+                    <header
+                      className="card-header"
+                      style={{ backgroundColor: "#f5f5f5" }}
+                    >
+                      <p className="card-header-title">
+                        {job.Job_Title || "Untitled"}
+                      </p>
+                    </header>
+                    <div className="card-content">
+                      <p className="subtitle is-6">
+                        <strong>Job ID:</strong> {job.id || "N/A"}
+                      </p>
+                    </div>
+                    <footer className="card-footer">
+                      <Link
+                        to={`/home/editJobTitle/${job.id}`}
+                        className="card-footer-item button is-small"
+                        style={{
+                          backgroundColor: "#17a2b8",
+                          color: "white",
+                          borderRadius: "15px",
+                          padding: "5px 15px",
+                          boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
+                          transition: "all 0.3s ease",
+                          border: "none",
+                          textDecoration: "none",
+                          textAlign: "center",
+                        }}
+                        onMouseOver={(e) =>
+                          (e.target.style.backgroundColor = "#138496")
+                        }
+                        onMouseOut={(e) =>
+                          (e.target.style.backgroundColor = "#17a2b8")
+                        }
+                      >
+                        Edit
+                      </Link>
+                    </footer>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </>
         )}
 
         {/* Pagination Controls */}
