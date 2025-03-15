@@ -8,69 +8,81 @@ const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [errors, setErrors] = useState({ email: "", password: "" });
+  const [errors, setErrors] = useState({ email: "", password: "", server: "" });
   const navigate = useNavigate();
   const { login } = useAuth();
 
-  // Validation functions
   const validateEmail = (email) => {
+    const trimmedEmail = email.trim();
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) return "Email is required";
-    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    if (!trimmedEmail) return "Email is required";
+    if (!emailRegex.test(trimmedEmail)) return "Please enter a valid email address";
     return "";
   };
 
   const validatePassword = (password) => {
+    // Relaxed validation for debugging; adjust as needed
+    const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[A-Za-z\d@$!%*?&]{8,}$/;
     if (!password) return "Password is required";
-    if (password.length < 8) return "Password must be at least 8 characters long";
+    if (!passwordRegex.test(password))
+      return "Password must be 8+ characters with uppercase, lowercase, and a number";
     return "";
   };
 
-  // Handle input changes with real-time validation
   const handleEmailChange = (e) => {
-    const value = e.target.value;
-    setEmail(value);
-    setErrors((prev) => ({ ...prev, email: validateEmail(value) }));
+    setEmail(e.target.value);
+    setErrors((prev) => ({ ...prev, email: "", server: "" }));
   };
 
   const handlePasswordChange = (e) => {
-    const value = e.target.value;
-    setPassword(value);
-    setErrors((prev) => ({ ...prev, password: validatePassword(value) }));
+    const newPassword = e.target.value;
+    console.log("Password input:", newPassword);
+    setPassword(newPassword);
+    setErrors((prev) => ({ ...prev, password: "", server: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Validate before submission
+    console.log("Submitting with password:", password);
+
     const emailError = validateEmail(email);
     const passwordError = validatePassword(password);
-    
+
     if (emailError || passwordError) {
-      setErrors({ email: emailError, password: passwordError });
+      setErrors({ email: emailError, password: passwordError, server: "" });
       return;
     }
 
     setLoading(true);
 
     try {
+      console.log("Sending to server:", { email: email.trim().toLowerCase(), password });
       const response = await fetch("http://localhost:5000/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
       if (response.ok) {
         const data = await response.json();
+        console.log("Login successful, token:", data.token);
         localStorage.setItem("authToken", data.token);
         login();
         navigate("/home");
       } else {
         const errorData = await response.json();
-        setErrors((prev) => ({ ...prev, email: errorData.message || "Invalid credentials" }));
+        console.log("Server rejected password:", errorData);
+        setErrors((prev) => ({
+          ...prev,
+          server: errorData.message || "Invalid credentials",
+        }));
       }
     } catch (err) {
-      setErrors((prev) => ({ ...prev, email: "An error occurred. Please try again." }));
+      console.error("Fetch error:", err);
+      setErrors((prev) => ({
+        ...prev,
+        server: "An error occurred. Please try again.",
+      }));
     } finally {
       setLoading(false);
     }
@@ -109,7 +121,12 @@ const LoginPage = () => {
 
         <form onSubmit={handleSubmit} noValidate>
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
-            {/* Email Field */}
+            {errors.server && (
+              <p className="help is-danger has-text-centered" id="server-error">
+                {errors.server}
+              </p>
+            )}
+
             <div className="field">
               <label className="label has-text-weight-medium">Email:</label>
               <div className="control">
@@ -118,6 +135,7 @@ const LoginPage = () => {
                   className={`input is-medium ${errors.email ? "is-danger" : ""}`}
                   value={email}
                   onChange={handleEmailChange}
+                  onBlur={() => setErrors((prev) => ({ ...prev, email: validateEmail(email) }))}
                   placeholder="Enter your email"
                   style={{ borderRadius: "8px" }}
                   aria-invalid={!!errors.email}
@@ -129,7 +147,6 @@ const LoginPage = () => {
               )}
             </div>
 
-            {/* Password Field */}
             <div className="field">
               <label className="label has-text-weight-medium">Password:</label>
               <div className="control">
@@ -138,6 +155,10 @@ const LoginPage = () => {
                   className={`input is-medium ${errors.password ? "is-danger" : ""}`}
                   value={password}
                   onChange={handlePasswordChange}
+                  onBlur={() => {
+                    console.log("Password blurred:", password);
+                    setErrors((prev) => ({ ...prev, password: validatePassword(password) }));
+                  }}
                   placeholder="Enter your password"
                   style={{ borderRadius: "8px" }}
                   aria-invalid={!!errors.password}
@@ -149,7 +170,6 @@ const LoginPage = () => {
               )}
             </div>
 
-            {/* Sign In Button */}
             <div className="field">
               <div className="control">
                 <motion.button
@@ -163,7 +183,7 @@ const LoginPage = () => {
                   }}
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.95 }}
-                  disabled={loading || !!errors.email || !!errors.password}
+                  disabled={loading}
                 >
                   Sign In
                 </motion.button>
@@ -185,7 +205,7 @@ const LoginPage = () => {
             </Link>
           </p>
           <p style={{ marginTop: "0.5rem" }}>
-            Don't have an account?{" "}
+            Don’t have an account?{" "}
             <Link to="/register" className="has-text-link">
               Sign Up here
             </Link>
