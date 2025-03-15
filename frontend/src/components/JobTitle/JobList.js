@@ -12,10 +12,16 @@ function DepartList() {
   const [isAdding, setIsAdding] = useState(false);
   const [addError, setAddError] = useState(false);
   const [editError, setEditError] = useState(false);
-  
+
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "ascending",
+  });
 
   useEffect(() => {
     fetchJobs();
@@ -72,7 +78,9 @@ function DepartList() {
       fetchJobs();
     } catch (error) {
       console.error("Error adding job title:", error);
-      alert("Failed to add Job Title: " + (error.response?.data?.message || error.message));
+      alert(
+        "Failed to add Job Title: " + (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -105,7 +113,9 @@ function DepartList() {
       setEditError(false);
     } catch (error) {
       console.error("Error updating job title:", error);
-      alert("Failed to update job title: " + (error.response?.data?.message || error.message));
+      alert(
+        "Failed to update job title: " + (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -119,18 +129,56 @@ function DepartList() {
     if (e.target.value.trim()) setEditError(false);
   };
 
-  // Filtering and Pagination Logic
+  // Sorting Logic
+  const requestSort = (key) => {
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedJobs = (jobs) => {
+    if (!sortConfig.key) return jobs;
+
+    const sorted = [...jobs].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      if (sortConfig.key === "Job_Title") {
+        aValue = a.Job_Title || "";
+        bValue = b.Job_Title || "";
+      } else if (sortConfig.key === "id") {
+        aValue = a.id || 0;
+        bValue = b.id || 0;
+      }
+
+      if (typeof aValue === "string") {
+        return sortConfig.direction === "ascending"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      return sortConfig.direction === "ascending"
+        ? aValue - bValue
+        : bValue - aValue;
+    });
+    return sorted;
+  };
+
+  // Filtering and Sorting Logic
   const filteredJobs = jobs
     .filter((job) => job && typeof job === "object")
     .filter((job) =>
       (job.Job_Title || "").toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-  const totalItems = filteredJobs.length;
+  const sortedJobs = getSortedJobs(filteredJobs);
+
+  const totalItems = sortedJobs.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const displayedJobs = filteredJobs.slice(startIndex, endIndex);
+  const displayedJobs = sortedJobs.slice(startIndex, endIndex);
 
   // Pagination Handlers
   const goToPage = (page) => {
@@ -204,14 +252,55 @@ function DepartList() {
           </div>
         </div>
 
-        {/* Modern Table Design */}
+        {/* Modern Table Design with Sortable Headers and Icons */}
         {!isMobile ? (
-          <div className="table-container box" style={{ backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+          <div
+            className="table-container box"
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          >
             <table className="table is-fullwidth is-hoverable">
               <thead>
                 <tr style={{ backgroundColor: "#f5f5f5" }}>
-                  <th className="has-text-weight-semibold">Job ID</th>
-                  <th className="has-text-weight-semibold">Job Title</th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("id")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Job ID
+                    <span className="ml-1">
+                      {sortConfig.key === "id" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("Job_Title")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Job Title
+                    <span className="ml-1">
+                      {sortConfig.key === "Job_Title" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
                   <th className="has-text-weight-semibold">Action</th>
                 </tr>
               </thead>
@@ -295,8 +384,17 @@ function DepartList() {
           <div className="columns is-multiline">
             {displayedJobs.map((job) => (
               <div key={job.id || Math.random()} className="column is-12">
-                <div className="card" style={{ borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                  <header className="card-header" style={{ backgroundColor: "#f5f5f5" }}>
+                <div
+                  className="card"
+                  style={{
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <header
+                    className="card-header"
+                    style={{ backgroundColor: "#f5f5f5" }}
+                  >
                     <p className="card-header-title">
                       {job.Job_Title || "Untitled"}
                     </p>
