@@ -79,7 +79,8 @@ function DepartList() {
     } catch (error) {
       console.error("Error adding job title:", error);
       alert(
-        "Failed to add Job Title: " + (error.response?.data?.message || error.message)
+        "Failed to add Job Title: " +
+          (error.response?.data?.message || error.message)
       );
     }
   };
@@ -114,7 +115,8 @@ function DepartList() {
     } catch (error) {
       console.error("Error updating job title:", error);
       alert(
-        "Failed to update job title: " + (error.response?.data?.message || error.message)
+        "Failed to update job title: " +
+          (error.response?.data?.message || error.message)
       );
     }
   };
@@ -222,8 +224,8 @@ function DepartList() {
       />
 
       <div
-        className="column p-5 mt-5"
-        style={{ position: "relative", zIndex: 1 }}
+        className="column p-5"
+        style={{ marginTop: "100px", position: "relative", zIndex: 1 }}
       >
         {!isMobile ? (
           <div
@@ -304,10 +306,12 @@ function DepartList() {
                           setCurrentPage(1);
                         }}
                         onFocus={(e) =>
-                          (e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)")
+                          (e.target.style.boxShadow =
+                            "0 4px 8px rgba(0,0,0,0.2)")
                         }
                         onBlur={(e) =>
-                          (e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)")
+                          (e.target.style.boxShadow =
+                            "0 2px 4px rgba(0,0,0,0.1)")
                         }
                       />
                       {!isAdding && (
