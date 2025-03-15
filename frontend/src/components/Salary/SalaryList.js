@@ -5,7 +5,7 @@ import { pdf } from "@react-pdf/renderer";
 import SalaryPDF from "../Printing/SalaryPDF";
 
 function SalaryList() {
-  // State Hooks
+  // Existing State Hooks
   const [salaries, setSalaries] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
@@ -28,10 +28,16 @@ function SalaryList() {
     Position: false,
     Salary: false,
   });
-
-  // Pagination States
+  const [addJobSearch, setAddJobSearch] = useState("");
+  const [editJobSearch, setEditJobSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "ascending",
+  });
 
   // Fetch Data on Mount
   useEffect(() => {
@@ -62,6 +68,55 @@ function SalaryList() {
     }
   };
 
+  // Sorting Logic
+  const requestSort = (key) => {
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedSalaries = (salaries) => {
+    if (!sortConfig.key) return salaries;
+
+    const sorted = [...salaries].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      if (sortConfig.key === "Job_Title") {
+        aValue = a.Job_Title || "";
+        bValue = b.Job_Title || "";
+      } else if (sortConfig.key === "position") {
+        aValue = a.position || "";
+        bValue = b.position || "";
+      } else if (sortConfig.key === "salary") {
+        aValue = parseFloat(a.salary) || 0;
+        bValue = parseFloat(b.salary) || 0;
+      } else if (sortConfig.key === "id") {
+        aValue = a.id || 0;
+        bValue = b.id || 0;
+      }
+
+      if (typeof aValue === "string") {
+        return sortConfig.direction === "ascending"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      return sortConfig.direction === "ascending"
+        ? aValue - bValue
+        : bValue - aValue;
+    });
+    return sorted;
+  };
+
+  // Filtering Jobs for Dropdown
+  const getFilteredJobs = (searchTerm) => {
+    return jobs.filter((job) =>
+      job.Job_Title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
   // Filtering and Pagination Logic
   const filteredSalaries = salaries.filter((user) =>
     `${user.Job_Title} ${user.position}`
@@ -69,11 +124,13 @@ function SalaryList() {
       .includes(searchTerm.toLowerCase())
   );
 
-  const totalItems = filteredSalaries.length;
+  const sortedSalaries = getSortedSalaries(filteredSalaries);
+
+  const totalItems = sortedSalaries.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const displayedSalaries = filteredSalaries.slice(startIndex, endIndex);
+  const displayedSalaries = sortedSalaries.slice(startIndex, endIndex);
 
   // Pagination Handlers
   const goToPage = (page) => {
@@ -93,7 +150,7 @@ function SalaryList() {
     window.open(url);
   };
 
-  // Editing Functions
+  // Editing Functions (unchanged)
   const startEditing = (salary) => {
     const job = jobs.find((job) => job.Job_Title === salary.Job_Title);
     if (!job) {
@@ -108,12 +165,14 @@ function SalaryList() {
     setEditingId(salary.id);
     setEditedSalary(newEditedSalary);
     setEditErrors({ dep_id: false, Position: false, Salary: false });
+    setEditJobSearch("");
   };
 
   const cancelEditing = () => {
     setEditingId(null);
     setEditedSalary({});
     setEditErrors({ dep_id: false, Position: false, Salary: false });
+    setEditJobSearch("");
   };
 
   const handleEditChange = (e, field) => {
@@ -143,19 +202,29 @@ function SalaryList() {
       setEditingId(null);
       setEditedSalary({});
       setEditErrors({ dep_id: false, Position: false, Salary: false });
+      setEditJobSearch("");
     } catch (error) {
       console.error("Error updating salary:", error);
-      alert("Failed to update salary: " + (error.response?.data?.message || error.message));
+      alert(
+        "Failed to update salary: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
-  // Add Functionality
-  const startAdding = () => setIsAdding(true);
+  // Add Functionality (unchanged)
+  const startAdding = () => {
+    setIsAdding(true);
+    setNewSalary({ dep_id: "", Position: "", Salary: "" });
+    setAddErrors({ dep_id: false, Position: false, Salary: false });
+    setAddJobSearch("");
+  };
 
   const cancelAdding = () => {
     setIsAdding(false);
     setNewSalary({ dep_id: "", Position: "", Salary: "" });
     setAddErrors({ dep_id: false, Position: false, Salary: false });
+    setAddJobSearch("");
   };
 
   const handleNewChange = (e, field) => {
@@ -186,9 +255,13 @@ function SalaryList() {
       await getUsers();
       setNewSalary({ dep_id: "", Position: "", Salary: "" });
       setAddErrors({ dep_id: false, Position: false, Salary: false });
+      setAddJobSearch("");
     } catch (error) {
       console.error("Error adding salary:", error);
-      alert("Failed to add salary: " + (error.response?.data?.message || error.message));
+      alert(
+        "Failed to add salary: " +
+          (error.response?.data?.message || error.message)
+      );
     }
   };
 
@@ -241,31 +314,115 @@ function SalaryList() {
           />
           <div className="mt-2 is-flex is-flex-wrap-wrap">
             {!isMobile && !isAdding && (
-              <button className="button is-success ml-3 mb-2" onClick={startAdding}>
+              <button
+                className="button is-success ml-3 mb-2"
+                onClick={startAdding}
+              >
                 Add Position
               </button>
             )}
             {isMobile ? (
-              <Link to="/home/AddSalary" className="button is-success ml-3 mb-2">
+              <Link
+                to="/home/AddSalary"
+                className="button is-success ml-3 mb-2"
+              >
                 Add Position
               </Link>
             ) : null}
-            <button onClick={handleViewPDF} className="button is-info ml-3 mb-2">
+            <button
+              onClick={handleViewPDF}
+              className="button is-info ml-3 mb-2"
+            >
               View PDF
             </button>
           </div>
         </div>
 
-        {/* Modern Table Design */}
+        {/* Modern Table Design with Sortable Headers and Icons */}
         {!isMobile ? (
-          <div className="table-container box" style={{ backgroundColor: "#fff", borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
+          <div
+            className="table-container box"
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: "8px",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+            }}
+          >
             <table className="table is-fullwidth is-hoverable">
               <thead>
                 <tr style={{ backgroundColor: "#f5f5f5" }}>
-                  <th className="has-text-weight-semibold">Salary ID</th>
-                  <th className="has-text-weight-semibold">Job Title</th>
-                  <th className="has-text-weight-semibold">Position / Level</th>
-                  <th className="has-text-weight-semibold">Salary</th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("id")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Salary ID
+                    <span className="ml-1">
+                      {sortConfig.key === "id" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("Job_Title")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Job Title
+                    <span className="ml-1">
+                      {sortConfig.key === "Job_Title" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("position")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Position / Level
+                    <span className="ml-1">
+                      {sortConfig.key === "position" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("salary")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Salary
+                    <span className="ml-1">
+                      {sortConfig.key === "salary" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
                   <th className="has-text-weight-semibold">Action</th>
                 </tr>
               </thead>
@@ -274,25 +431,40 @@ function SalaryList() {
                   <tr>
                     <td className="has-text-grey">New</td>
                     <td>
-                      <div className="select is-fullwidth">
-                        <select
-                          value={newSalary.dep_id}
-                          onChange={(e) => handleNewChange(e, "dep_id")}
-                          className={addErrors.dep_id ? "is-danger" : ""}
+                      <div className="control">
+                        <input
+                          type="text"
+                          className="input mb-2"
+                          placeholder="Search Job Title..."
+                          value={addJobSearch}
+                          onChange={(e) => setAddJobSearch(e.target.value)}
+                        />
+                        <div
+                          className={`select is-fullwidth ${
+                            addErrors.dep_id ? "is-danger" : ""
+                          }`}
                         >
-                          <option value="">Select a Job</option>
-                          {jobs.map((dep) => (
-                            <option key={dep.id} value={dep.id}>
-                              {dep.Job_Title}
-                            </option>
-                          ))}
-                        </select>
+                          <select
+                            value={newSalary.dep_id}
+                            onChange={(e) => handleNewChange(e, "dep_id")}
+                            style={{ height: "100px" }}
+                          >
+                            <option value="">Select a Job</option>
+                            {getFilteredJobs(addJobSearch).map((dep) => (
+                              <option key={dep.id} value={dep.id}>
+                                {dep.Job_Title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </td>
                     <td>
                       <input
                         type="text"
-                        className={`input ${addErrors.Position ? "is-danger" : ""}`}
+                        className={`input ${
+                          addErrors.Position ? "is-danger" : ""
+                        }`}
                         value={newSalary.Position}
                         onChange={(e) => handleNewChange(e, "Position")}
                         placeholder="Position / Level"
@@ -301,7 +473,9 @@ function SalaryList() {
                     <td>
                       <input
                         type="number"
-                        className={`input ${addErrors.Salary ? "is-danger" : ""}`}
+                        className={`input ${
+                          addErrors.Salary ? "is-danger" : ""
+                        }`}
                         value={newSalary.Salary}
                         onChange={(e) => handleNewChange(e, "Salary")}
                         placeholder="Salary"
@@ -330,19 +504,32 @@ function SalaryList() {
                     <td>{user.id}</td>
                     <td>
                       {editingId === user.id ? (
-                        <div className="select is-fullwidth">
-                          <select
-                            value={editedSalary.dep_id || ""}
-                            onChange={(e) => handleEditChange(e, "dep_id")}
-                            className={editErrors.dep_id ? "is-danger" : ""}
+                        <div className="control">
+                          <input
+                            type="text"
+                            className="input mb-2"
+                            placeholder="Search Job Title..."
+                            value={editJobSearch}
+                            onChange={(e) => setEditJobSearch(e.target.value)}
+                          />
+                          <div
+                            className={`select is-fullwidth ${
+                              editErrors.dep_id ? "is-danger" : ""
+                            }`}
                           >
-                            <option value="">Select a Job</option>
-                            {jobs.map((dep) => (
-                              <option key={dep.id} value={dep.id}>
-                                {dep.Job_Title}
-                              </option>
-                            ))}
-                          </select>
+                            <select
+                              value={editedSalary.dep_id || ""}
+                              onChange={(e) => handleEditChange(e, "dep_id")}
+                              style={{ height: "100px" }}
+                            >
+                              <option value="">Select a Job</option>
+                              {getFilteredJobs(editJobSearch).map((dep) => (
+                                <option key={dep.id} value={dep.id}>
+                                  {dep.Job_Title}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
                         </div>
                       ) : (
                         user.Job_Title
@@ -352,7 +539,9 @@ function SalaryList() {
                       {editingId === user.id ? (
                         <input
                           type="text"
-                          className={`input ${editErrors.Position ? "is-danger" : ""}`}
+                          className={`input ${
+                            editErrors.Position ? "is-danger" : ""
+                          }`}
                           value={editedSalary.Position || ""}
                           onChange={(e) => handleEditChange(e, "Position")}
                         />
@@ -364,7 +553,9 @@ function SalaryList() {
                       {editingId === user.id ? (
                         <input
                           type="number"
-                          className={`input ${editErrors.Salary ? "is-danger" : ""}`}
+                          className={`input ${
+                            editErrors.Salary ? "is-danger" : ""
+                          }`}
                           value={editedSalary.Salary || ""}
                           onChange={(e) => handleEditChange(e, "Salary")}
                         />
@@ -408,13 +599,26 @@ function SalaryList() {
           <div className="columns is-multiline">
             {displayedSalaries.map((user) => (
               <div key={user.id} className="column is-12">
-                <div className="card" style={{ borderRadius: "8px", boxShadow: "0 2px 8px rgba(0,0,0,0.1)" }}>
-                  <header className="card-header" style={{ backgroundColor: "#f5f5f5" }}>
+                <div
+                  className="card"
+                  style={{
+                    borderRadius: "8px",
+                    boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
+                  }}
+                >
+                  <header
+                    className="card-header"
+                    style={{ backgroundColor: "#f5f5f5" }}
+                  >
                     <p className="card-header-title">{user.Job_Title}</p>
                   </header>
                   <div className="card-content">
-                    <p><strong>Salary ID:</strong> {user.id}</p>
-                    <p><strong>Position:</strong> {user.position}</p>
+                    <p>
+                      <strong>Salary ID:</strong> {user.id}
+                    </p>
+                    <p>
+                      <strong>Position:</strong> {user.position}
+                    </p>
                     <p>
                       <strong>Salary:</strong>{" "}
                       {user.salary
