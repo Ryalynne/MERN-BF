@@ -297,8 +297,8 @@ function SalaryList() {
       />
 
       <div
-        className="column p-5 mt-5"
-        style={{ position: "relative", zIndex: 1 }}
+        className="column p-5"
+        style={{ marginTop: "100px", position: "relative", zIndex: 1 }}
       >
         {!isMobile ? (
           <div
@@ -415,10 +415,12 @@ function SalaryList() {
                           setCurrentPage(1);
                         }}
                         onFocus={(e) =>
-                          (e.target.style.boxShadow = "0 4px 8px rgba(0,0,0,0.2)")
+                          (e.target.style.boxShadow =
+                            "0 4px 8px rgba(0,0,0,0.2)")
                         }
                         onBlur={(e) =>
-                          (e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)")
+                          (e.target.style.boxShadow =
+                            "0 2px 4px rgba(0,0,0,0.1)")
                         }
                       />
                       {!isAdding && (
@@ -748,7 +750,10 @@ function SalaryList() {
                   (e.target.style.boxShadow = "0 2px 4px rgba(0,0,0,0.1)")
                 }
               />
-              <div className="mt-2 is-flex is-flex-wrap-wrap" style={{ gap: "10px" }}>
+              <div
+                className="mt-2 is-flex is-flex-wrap-wrap"
+                style={{ gap: "10px" }}
+              >
                 <Link
                   to="/home/AddSalary"
                   className="button"
@@ -824,9 +829,12 @@ function SalaryList() {
                       <p>
                         <strong>Salary:</strong>{" "}
                         {user.salary
-                          ? `₱${parseFloat(user.salary).toLocaleString("en-PH", {
-                              minimumFractionDigits: 2,
-                            })}`
+                          ? `₱${parseFloat(user.salary).toLocaleString(
+                              "en-PH",
+                              {
+                                minimumFractionDigits: 2,
+                              }
+                            )}`
                           : "N/A"}
                       </p>
                     </div>
