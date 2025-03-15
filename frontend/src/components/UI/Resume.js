@@ -14,6 +14,7 @@ const Resume = () => {
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
         padding: "3rem",
+        marginTop: "50px",
       }}
     >
       <motion.div
