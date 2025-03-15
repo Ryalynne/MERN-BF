@@ -182,7 +182,10 @@ const EditUser = () => {
 
   return (
     <div>
-      <div className="column is-half container mt-5">
+            <div
+        className="column p-5"
+        style={{ marginTop: "100px", position: "relative", zIndex: 1 }}
+      >
         {loading ? (
           <p>Loading...</p>
         ) : (
