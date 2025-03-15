@@ -38,10 +38,20 @@ const UserList = () => {
     job_id: false,
     salary_id: false,
   });
+  const [addJobSearch, setAddJobSearch] = useState("");
+  const [editJobSearch, setEditJobSearch] = useState("");
+  const [addPositionSearch, setAddPositionSearch] = useState("");
+  const [editPositionSearch, setEditPositionSearch] = useState("");
 
   // Pagination States
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  // Sorting State
+  const [sortConfig, setSortConfig] = useState({
+    key: null,
+    direction: "ascending",
+  });
 
   // Email Validation Function
   const isValidEmail = (email) => {
@@ -104,6 +114,72 @@ const UserList = () => {
     }
   };
 
+  // Sorting Logic
+  const requestSort = (key) => {
+    let direction = "ascending";
+    if (sortConfig.key === key && sortConfig.direction === "ascending") {
+      direction = "descending";
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedUsers = (users) => {
+    if (!sortConfig.key) return users;
+
+    const sorted = [...users].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle specific cases
+      if (sortConfig.key === "full_name") {
+        aValue = a.full_name || "";
+        bValue = b.full_name || "";
+      } else if (sortConfig.key === "gender") {
+        aValue = a.gender || "";
+        bValue = b.gender || "";
+      } else if (sortConfig.key === "email") {
+        aValue = a.email || "";
+        bValue = b.email || "";
+      } else if (sortConfig.key === "Job_Title") {
+        aValue = a.Job_Title || "";
+        bValue = b.Job_Title || "";
+      } else if (sortConfig.key === "position") {
+        aValue = a.position || "";
+        bValue = b.position || "";
+      } else if (sortConfig.key === "salary") {
+        aValue = parseFloat(a.salary) || 0;
+        bValue = parseFloat(b.salary) || 0;
+      } else if (sortConfig.key === "id") {
+        aValue = a.id || 0;
+        bValue = b.id || 0;
+      }
+
+      if (typeof aValue === "string") {
+        return sortConfig.direction === "ascending"
+          ? aValue.localeCompare(bValue)
+          : bValue.localeCompare(aValue);
+      }
+      return sortConfig.direction === "ascending"
+        ? aValue - bValue
+        : bValue - aValue;
+    });
+    return sorted;
+  };
+
+  // Filtering Functions for Searchable Dropdowns
+  const getFilteredDepartments = (searchTerm) => {
+    return departments.filter((dep) =>
+      dep.Job_Title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
+  const getFilteredPositions = (jobId, searchTerm) => {
+    if (!jobId || !positions[jobId]) return [];
+    return positions[jobId].filter((pos) =>
+      pos.position.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
   const handleEdit = async (user) => {
     if (!user?.id) return;
     setEditRow(user.id);
@@ -114,6 +190,8 @@ const UserList = () => {
       job_id: false,
       salary_id: false,
     });
+    setEditJobSearch("");
+    setEditPositionSearch("");
 
     const matchedJob =
       departments.find((dep) => dep.Job_Title === user.Job_Title) || {};
@@ -147,6 +225,7 @@ const UserList = () => {
             salary_id: "",
             salary: "",
           }));
+          setEditPositionSearch("");
         });
       }
       if (field === "salary_id") {
@@ -199,6 +278,8 @@ const UserList = () => {
         job_id: false,
         salary_id: false,
       });
+      setEditJobSearch("");
+      setEditPositionSearch("");
       await getUsers();
     } catch (error) {
       console.error(
@@ -224,6 +305,8 @@ const UserList = () => {
       job_id: false,
       salary_id: false,
     });
+    setAddJobSearch("");
+    setAddPositionSearch("");
   };
 
   const cancelAdding = () => {
@@ -242,6 +325,8 @@ const UserList = () => {
       job_id: false,
       salary_id: false,
     });
+    setAddJobSearch("");
+    setAddPositionSearch("");
   };
 
   const handleNewChange = (e, field) => {
@@ -251,6 +336,7 @@ const UserList = () => {
       if (field === "job_id") {
         fetchPositionsForJob(value);
         newData.salary_id = "";
+        setAddPositionSearch("");
       }
       return newData;
     });
@@ -286,7 +372,6 @@ const UserList = () => {
         job_id: parseInt(newEmployee.job_id),
       };
       await axios.post("http://localhost:5000/users", payload);
-      setIsAdding(false);
       setNewEmployee({
         full_name: "",
         gender: "",
@@ -301,16 +386,21 @@ const UserList = () => {
         job_id: false,
         salary_id: false,
       });
+      setAddJobSearch("");
+      setAddPositionSearch("");
       await getUsers();
     } catch (error) {
       console.error(
         "Error adding employee:",
         error.response?.data || error.message
       );
+      alert(
+        "Failed to add employee: " + (error.response?.data?.message || error.message)
+      );
     }
   };
 
-  // Filtering and Pagination Logic
+  // Filtering and Sorting Logic
   const filteredUsers = users.filter((user) =>
     `${user.full_name} ${user.email} ${user.Job_Title || ""} ${
       user.position || ""
@@ -319,11 +409,13 @@ const UserList = () => {
       .includes(searchTerm.toLowerCase())
   );
 
-  const totalItems = filteredUsers.length;
+  const sortedUsers = getSortedUsers(filteredUsers);
+
+  const totalItems = sortedUsers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const displayedUsers = filteredUsers.slice(startIndex, endIndex);
+  const displayedUsers = sortedUsers.slice(startIndex, endIndex);
 
   // Pagination Handlers
   const goToPage = (page) => {
@@ -433,7 +525,7 @@ const UserList = () => {
           </div>
         </div>
 
-        {/* Modern Table Design */}
+        {/* Modern Table Design with Sortable Headers and Icons */}
         {!isMobile ? (
           <div
             className="table-container box"
@@ -446,13 +538,132 @@ const UserList = () => {
             <table className="table is-fullwidth is-hoverable">
               <thead>
                 <tr style={{ backgroundColor: "#f5f5f5" }}>
-                  <th className="has-text-weight-semibold">Employee ID</th>
-                  <th className="has-text-weight-semibold">Full Name</th>
-                  <th className="has-text-weight-semibold">Gender</th>
-                  <th className="has-text-weight-semibold">Email</th>
-                  <th className="has-text-weight-semibold">Job Title</th>
-                  <th className="has-text-weight-semibold">Position</th>
-                  <th className="has-text-weight-semibold">Salary</th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("id")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Employee ID
+                    <span className="ml-1">
+                      {sortConfig.key === "id" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("full_name")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Full Name
+                    <span className="ml-1">
+                      {sortConfig.key === "full_name" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("gender")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Gender
+                    <span className="ml-1">
+                      {sortConfig.key === "gender" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("email")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Email
+                    <span className="ml-1">
+                      {sortConfig.key === "email" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("Job_Title")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Job Title
+                    <span className="ml-1">
+                      {sortConfig.key === "Job_Title" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("position")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Position
+                    <span className="ml-1">
+                      {sortConfig.key === "position" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
+                  <th
+                    className="has-text-weight-semibold"
+                    onClick={() => requestSort("salary")}
+                    style={{ cursor: "pointer" }}
+                  >
+                    Salary
+                    <span className="ml-1">
+                      {sortConfig.key === "salary" ? (
+                        sortConfig.direction === "ascending" ? (
+                          "▲"
+                        ) : (
+                          "▼"
+                        )
+                      ) : (
+                        <span style={{ opacity: 0.3 }}>▲</span>
+                      )}
+                    </span>
+                  </th>
                   <th className="has-text-weight-semibold">Actions</th>
                 </tr>
               </thead>
@@ -496,46 +707,76 @@ const UserList = () => {
                       />
                     </td>
                     <td>
-                      <div className="select is-fullwidth">
-                        <select
-                          value={newEmployee.job_id}
-                          onChange={(e) => handleNewChange(e, "job_id")}
-                          className={addErrors.job_id ? "is-danger" : ""}
+                      <div className="control">
+                        <input
+                          type="text"
+                          className="input mb-2"
+                          placeholder="Search Job Title..."
+                          value={addJobSearch}
+                          onChange={(e) => setAddJobSearch(e.target.value)}
+                        />
+                        <div
+                          className={`select is-fullwidth ${
+                            addErrors.job_id ? "is-danger" : ""
+                          }`}
                         >
-                          <option value="">Select Job Title</option>
-                          {departments.map((dep) => (
-                            <option key={dep.id} value={dep.id.toString()}>
-                              {dep.Job_Title}
-                            </option>
-                          ))}
-                        </select>
+                          <select
+                            value={newEmployee.job_id}
+                            onChange={(e) => handleNewChange(e, "job_id")}
+                            style={{ height: "100px" }}
+                          >
+                            <option value="">Select Job Title</option>
+                            {getFilteredDepartments(addJobSearch).map((dep) => (
+                              <option key={dep.id} value={dep.id.toString()}>
+                                {dep.Job_Title}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
                       </div>
                     </td>
                     <td>
-                      <div className="select is-fullwidth">
-                        <select
-                          value={newEmployee.salary_id}
-                          onChange={(e) => handleNewChange(e, "salary_id")}
-                          disabled={
-                            !newEmployee.job_id ||
-                            loadingPositions[newEmployee.job_id] ||
-                            !positions[newEmployee.job_id]?.length
-                          }
-                          className={addErrors.salary_id ? "is-danger" : ""}
+                      <div className="control">
+                        <input
+                          type="text"
+                          className="input mb-2"
+                          placeholder="Search Position..."
+                          value={addPositionSearch}
+                          onChange={(e) => setAddPositionSearch(e.target.value)}
+                          disabled={!newEmployee.job_id}
+                        />
+                        <div
+                          className={`select is-fullwidth ${
+                            addErrors.salary_id ? "is-danger" : ""
+                          }`}
                         >
-                          <option value="">Select Position</option>
-                          {loadingPositions[newEmployee.job_id] ? (
-                            <option disabled>Loading positions...</option>
-                          ) : positions[newEmployee.job_id]?.length ? (
-                            positions[newEmployee.job_id].map((pos) => (
-                              <option key={pos.id} value={pos.id.toString()}>
-                                {pos.position}
-                              </option>
-                            ))
-                          ) : (
-                            <option disabled>No positions available</option>
-                          )}
-                        </select>
+                          <select
+                            value={newEmployee.salary_id}
+                            onChange={(e) => handleNewChange(e, "salary_id")}
+                            disabled={
+                              !newEmployee.job_id ||
+                              loadingPositions[newEmployee.job_id] ||
+                              !positions[newEmployee.job_id]?.length
+                            }
+                            style={{ height: "100px" }}
+                          >
+                            <option value="">Select Position</option>
+                            {loadingPositions[newEmployee.job_id] ? (
+                              <option disabled>Loading positions...</option>
+                            ) : positions[newEmployee.job_id]?.length ? (
+                              getFilteredPositions(
+                                newEmployee.job_id,
+                                addPositionSearch
+                              ).map((pos) => (
+                                <option key={pos.id} value={pos.id.toString()}>
+                                  {pos.position}
+                                </option>
+                              ))
+                            ) : (
+                              <option disabled>No positions available</option>
+                            )}
+                          </select>
+                        </div>
                       </div>
                     </td>
                     <td>
@@ -632,19 +873,37 @@ const UserList = () => {
                       </td>
                       <td>
                         {editRow === user.id ? (
-                          <div className="select is-fullwidth">
-                            <select
-                              value={editedData.job_id || ""}
-                              onChange={(e) => handleEditChange(e, "job_id")}
-                              className={editErrors.job_id ? "is-danger" : ""}
+                          <div className="control">
+                            <input
+                              type="text"
+                              className="input mb-2"
+                              placeholder="Search Job Title..."
+                              value={editJobSearch}
+                              onChange={(e) => setEditJobSearch(e.target.value)}
+                            />
+                            <div
+                              className={`select is-fullwidth ${
+                                editErrors.job_id ? "is-danger" : ""
+                              }`}
                             >
-                              <option value="">Select Job Title</option>
-                              {departments.map((dep) => (
-                                <option key={dep.id} value={dep.id.toString()}>
-                                  {dep.Job_Title}
-                                </option>
-                              ))}
-                            </select>
+                              <select
+                                value={editedData.job_id || ""}
+                                onChange={(e) => handleEditChange(e, "job_id")}
+                                style={{ height: "100px" }}
+                              >
+                                <option value="">Select Job Title</option>
+                                {getFilteredDepartments(editJobSearch).map(
+                                  (dep) => (
+                                    <option
+                                      key={dep.id}
+                                      value={dep.id.toString()}
+                                    >
+                                      {dep.Job_Title}
+                                    </option>
+                                  )
+                                )}
+                              </select>
+                            </div>
                           </div>
                         ) : (
                           user.Job_Title || "-"
@@ -652,35 +911,54 @@ const UserList = () => {
                       </td>
                       <td>
                         {editRow === user.id ? (
-                          <div className="select is-fullwidth">
-                            <select
-                              value={editedData.salary_id || ""}
-                              onChange={(e) => handleEditChange(e, "salary_id")}
-                              disabled={
-                                !editedData.job_id ||
-                                loadingPositions[editedData.job_id] ||
-                                !positions[editedData.job_id]?.length
+                          <div className="control">
+                            <input
+                              type="text"
+                              className="input mb-2"
+                              placeholder="Search Position..."
+                              value={editPositionSearch}
+                              onChange={(e) =>
+                                setEditPositionSearch(e.target.value)
                               }
-                              className={
+                              disabled={!editedData.job_id}
+                            />
+                            <div
+                              className={`select is-fullwidth ${
                                 editErrors.salary_id ? "is-danger" : ""
-                              }
+                              }`}
                             >
-                              <option value="">Select Position</option>
-                              {loadingPositions[editedData.job_id] ? (
-                                <option disabled>Loading positions...</option>
-                              ) : positions[editedData.job_id]?.length ? (
-                                positions[editedData.job_id].map((pos) => (
-                                  <option
-                                    key={pos.id}
-                                    value={pos.id.toString()}
-                                  >
-                                    {pos.position}
-                                  </option>
-                                ))
-                              ) : (
-                                <option disabled>No positions available</option>
-                              )}
-                            </select>
+                              <select
+                                value={editedData.salary_id || ""}
+                                onChange={(e) =>
+                                  handleEditChange(e, "salary_id")
+                                }
+                                disabled={
+                                  !editedData.job_id ||
+                                  loadingPositions[editedData.job_id] ||
+                                  !positions[editedData.job_id]?.length
+                                }
+                                style={{ height: "100px" }}
+                              >
+                                <option value="">Select Position</option>
+                                {loadingPositions[editedData.job_id] ? (
+                                  <option disabled>Loading positions...</option>
+                                ) : positions[editedData.job_id]?.length ? (
+                                  getFilteredPositions(
+                                    editedData.job_id,
+                                    editPositionSearch
+                                  ).map((pos) => (
+                                    <option
+                                      key={pos.id}
+                                      value={pos.id.toString()}
+                                    >
+                                      {pos.position}
+                                    </option>
+                                  ))
+                                ) : (
+                                  <option disabled>No positions available</option>
+                                )}
+                              </select>
+                            </div>
                           </div>
                         ) : (
                           user.position || "-"
