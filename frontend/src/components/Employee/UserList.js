@@ -484,8 +484,8 @@ const UserList = () => {
       />
 
       <div
-        className="column mt-5 p-5"
-        style={{ position: "relative", zIndex: 1 }}
+        className="column p-5"
+        style={{ marginTop: "100px", position: "relative", zIndex: 1 }}
       >
         {!isMobile ? (
           <div
