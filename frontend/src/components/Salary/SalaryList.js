@@ -295,7 +295,6 @@ function SalaryList() {
           zIndex: -1,
         }}
       />
-
       <div
         className="column p-5"
         style={{ marginTop: "100px", position: "relative", zIndex: 1 }}
@@ -309,6 +308,7 @@ function SalaryList() {
               boxShadow: "0 2px 8px rgba(0,0,0,0.1)",
             }}
           >
+            {/* add border -> is-bordered */}
             <table className="table is-fullwidth is-hoverable">
               <thead>
                 <tr style={{ backgroundColor: "#f5f5f5" }}>
